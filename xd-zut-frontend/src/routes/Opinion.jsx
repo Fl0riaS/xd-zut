@@ -1,41 +1,40 @@
-import {
-  ActionIcon,
-  Button,
-  Flex,
-  Stack,
-  TextInput,
-  Textarea,
-  Title,
-  UnstyledButton,
-} from '@mantine/core'
+import { Button, Flex, Stack, Textarea, Title } from '@mantine/core'
 import { IconMoodHappy, IconMoodSad } from '@tabler/icons-react'
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 
 function Opinion() {
-  const [rate, setRate] = useState()
+  const { roomNumber } = useParams()
+  const [rate, setRate] = useState(0)
+
+  const handleSubmit = () => {}
 
   return (
     <Stack w='100%' h='100%' align='center' justify='center' spacing='xl'>
-      <Title>Jak podobały ci się zajęcia?</Title>
+      <Title align='center'>Jak podobały ci się zajęcia?</Title>
       <Flex w='100%' justify='center' gap='xl'>
-        <Button h='10rem' w='10rem' variant='light' color='red'>
-          <IconMoodSad
-            size='10rem'
-            onClick={() => {
-              setRate(-1)
-            }}
-          />
-        </Button>
-        <Button h='10rem' w='10rem' variant='light' color='green'>
-          <IconMoodHappy
-            size='10rem'
-            onClick={() => {
-              setRate(1)
-            }}
-          />
-        </Button>
+        {rate <= 0 && (
+          <Button h='10rem' w='10rem' variant='light' color='red'>
+            <IconMoodSad
+              size='10rem'
+              onClick={() => {
+                setRate(-1)
+              }}
+            />
+          </Button>
+        )}
+        {rate >= 0 && (
+          <Button h='10rem' w='10rem' variant='light' color='green'>
+            <IconMoodHappy
+              size='10rem'
+              onClick={() => {
+                setRate(1)
+              }}
+            />
+          </Button>
+        )}
       </Flex>
-      {rate && (
+      {rate !== 0 && (
         <>
           <Textarea
             label='Dodaj komentarz do oceny'
@@ -48,11 +47,16 @@ function Opinion() {
             p={'xl'}
             w='80%'
           />
-          <Flex gap='xl'>
-            <Button size='xl' variant='outline' miw='15rem'>
+          <Flex gap='xl' w='100%' justify='space-around'>
+            <Button
+              size='md'
+              variant='outline'
+              onClick={() => setRate(0)}
+              miw='10rem'
+            >
               Zmień ocenę
             </Button>
-            <Button size='xl' miw='15rem'>
+            <Button size='md' onClick={handleSubmit} miw='10rem'>
               Wyślij
             </Button>
           </Flex>

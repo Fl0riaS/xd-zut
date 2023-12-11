@@ -1,6 +1,8 @@
 import { Outlet } from 'react-router-dom'
 
 const RootLayout = () => {
+  return <Outlet />
+
   return (
     <div>
       <h1>Root layout</h1>
