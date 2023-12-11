@@ -1,11 +1,12 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { MantineProvider } from '@mantine/core'
 import Form from './routes/Opinion.jsx'
 import RootLayout from './layout/RootLayout.jsx'
 import Login from './routes/Login.jsx'
+import ReportPage from './pages/ReportPage.jsx'
+import ReportListPage from './pages/ReportListPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -21,6 +22,14 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/report/:reportId',
+    element: <ReportPage />,
+  },
+  {
+    path: '/reports',
+    element: <ReportListPage />,
   },
 ])
 
