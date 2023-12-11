@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { MantineProvider } from '@mantine/core'
 import Form from './routes/Opinion.jsx'
 import RootLayout from './layout/RootLayout.jsx'
+import Login from './routes/Login.jsx'
 
 const router = createBrowserRouter([
   {
@@ -17,13 +18,17 @@ const router = createBrowserRouter([
       },
     ],
   },
+  {
+    path: '/login',
+    element: <Login />,
+  },
 ])
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <MantineProvider withGlobalStyles withNormalizeCSS>
       <RouterProvider router={router} />
-      <App />
+      {/* <App /> */}
     </MantineProvider>
   </React.StrictMode>
 )
