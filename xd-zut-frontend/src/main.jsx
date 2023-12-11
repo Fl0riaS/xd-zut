@@ -7,6 +7,8 @@ import RootLayout from './layout/RootLayout.jsx'
 import './main.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Login from './routes/Login.jsx'
+import ReportPage from './pages/ReportPage.jsx'
+import ReportListPage from './pages/ReportListPage.jsx'
 
 const queryClient = new QueryClient()
 
@@ -24,6 +26,14 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/report/:reportId',
+    element: <ReportPage />,
+  },
+  {
+    path: '/reports',
+    element: <ReportListPage />,
   },
 ])
 
