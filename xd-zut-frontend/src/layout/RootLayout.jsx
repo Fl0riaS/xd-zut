@@ -1,22 +1,14 @@
-import { Outlet } from 'react-router-dom'
+import { Button, Center } from '@mantine/core'
+import { Link, Outlet } from 'react-router-dom'
 
 const RootLayout = () => {
   return (
     <div>
-      <h1>Root layout</h1>
-      <nav>
-        <ul>
-          <li>
-            <a href='/'>Home</a>
-          </li>
-          <li>
-            <a href='/opinion/1'>Form 1</a>
-          </li>
-          <li>
-            <a href='/opinion/2'>Form 2</a>
-          </li>
-        </ul>
-      </nav>
+      <Center mih='100vh'>
+        <Link to='/login'>
+          <Button variant='light'>Zaloguj</Button>
+        </Link>
+      </Center>
       <Outlet />
     </div>
   )
