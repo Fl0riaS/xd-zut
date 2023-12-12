@@ -13,12 +13,21 @@ import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useLocalStorage } from '@mantine/hooks'
 
 function Opinion() {
+  // #region HOOKS
   const { roomNumber } = useParams()
+  const [ratedLessons, setRatedLessons] = useLocalStorage({
+    key: 'rated-lessons',
+    defaultValue: [],
+  })
+
   const [rate, setRate] = useState(0)
   const [rateDescription, setRateDescription] = useState('')
+  // #endregion
 
+  // #region MUTATIONS
   const { isLoading, data } = useQuery({
     queryKey: ['course', roomNumber],
     queryFn: async () => {
@@ -42,8 +51,10 @@ function Opinion() {
       return result
     },
   })
+  // #endregion
 
-  const handleSubmit = () => {
+  // #region HANDLERS
+  const handleSubmit = async () => {
     const mutationData = {
       score: rate,
       startDate: data.start,
@@ -51,12 +62,20 @@ function Opinion() {
       workerTitle: data.worker_title,
       lessonFormShort: data.lesson_form_short,
       groupName: data.group_name,
-      comment: rateDescription
+      comment: rateDescription,
     }
 
     // TODO: send to backend
-  }
 
+    // Add rated class to local storage
+    setRatedLessons(previouslyRatedClasses => [
+      ...previouslyRatedClasses,
+      { roomNumber, startDate: data.start },
+    ])
+  }
+  // #endregion
+
+  // #region JSX
   if (isLoading) {
     return (
       <Flex w='100%' h='100%' justify='center' align='center'>
@@ -71,6 +90,23 @@ function Opinion() {
         <IconMoodSad size='8rem' />
         <Title align='center' px='sm'>
           Nie znaleziono zajęć w tej sali
+        </Title>
+      </Stack>
+    )
+  }
+
+  // Check if current lesson is not already rated by user
+  if (
+    ratedLessons.find(
+      lesson =>
+        lesson.roomNumber === roomNumber && data.start === lesson.startDate
+    )
+  ) {
+    return (
+      <Stack w='100%' h='100%' justify='center' align='center'>
+        <IconMoodHappy size='8rem' />
+        <Title align='center' px='sm'>
+          Pomyślnie przesłano ocenę
         </Title>
       </Stack>
     )
@@ -148,6 +184,7 @@ function Opinion() {
       )}
     </Stack>
   )
+  // #endregion
 }
 
 export default Opinion
