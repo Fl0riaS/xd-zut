@@ -16,14 +16,14 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OpinionController extends AbstractController
 {
-    #[Route('/opinion', name: 'app_opinion')]
-    public function index(): JsonResponse
-    {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/OpinionController.php',
-        ]);
-    }
+  #[Route('/opinion', name: 'app_opinion')]
+  public function index(): JsonResponse
+  {
+    return $this->json([
+      'message' => 'Welcome to your new controller!',
+      'path' => 'src/Controller/OpinionController.php',
+    ]);
+  }
 
     // Add opinion
     // Backend get
