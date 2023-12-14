@@ -11,40 +11,36 @@ use App\Model\AddOpinionDTO;
 
 class OpinionController extends AbstractController
 {
-    #[Route('/opinion', name: 'app_opinion')]
-    public function index(): JsonResponse
-    {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/OpinionController.php',
-        ]);
-    }
+  #[Route('/opinion', name: 'app_opinion')]
+  public function index(): JsonResponse
+  {
+    return $this->json([
+      'message' => 'Welcome to your new controller!',
+      'path' => 'src/Controller/OpinionController.php',
+    ]);
+  }
 
-    // Add opinion
-    // Backend get
-    // score
-    // startDate
-    // endDate
-    // workerTitle
-    // lessonFormShort
-    // groupName
-    // comment
-    #[Route('/opinion/add', name: 'app_opinion_add', methods: ['POST'])]
-    public function addOpinion(
-      // Request $request,
-      // SerializerInterface $serializer,
-      #[MapRequestPayload] AddOpinionDTO $opinionDTO
-      ): JsonResponse
-    {
+  // Add opinion
+  // Backend get
+  // score
+  // startDate
+  // endDate
+  // workerTitle
+  // lessonFormShort
+  // groupName
+  // comment
+  #[Route('/opinion/add', name: 'app_opinion_add', methods: ['POST'])]
+  public function addOpinion(
+    Request $request,
+    // SerializerInterface $serializer,
+    #[MapRequestPayload] AddOpinionDTO $opinionDTO
+  ): JsonResponse {
 
-        die(json_encode($opinionDTO));
-        // get data from request
-        // $data = json_decode($request->getContent(), true);
+    // get data from request
+    $data = json_decode($request->getContent(), true);
 
-        // return data as json
-        // return $this->json([
-          // "data" => $data
-        // ]);
-        
-    }
+    return $this->json([
+      "data" => $data
+    ]);
+  }
 }
