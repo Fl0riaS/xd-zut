@@ -9,7 +9,7 @@ import {
   Title,
 } from '@mantine/core'
 import { IconMoodHappy, IconMoodSad } from '@tabler/icons-react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -51,6 +51,21 @@ function Opinion() {
       return result
     },
   })
+
+  const addOpinionMutation = useMutation({
+    mutationFn: async data => {
+      const response = await fetch('http://localhost:3000/opinion/add', {
+        method: 'POST',
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        mode: 'cors', // no-cors, *cors, same-origin
+      })
+      return response.json()
+    },
+  })
   // #endregion
 
   // #region HANDLERS
@@ -60,12 +75,13 @@ function Opinion() {
       startDate: data.start,
       endDate: data.end,
       workerTitle: data.worker_title,
-      lessonFormShort: data.lesson_form_short,
+      title: data.title,
       groupName: data.group_name,
       comment: rateDescription,
     }
 
-    // TODO: send to backend
+    // send to backend
+    await addOpinionMutation.mutateAsync(mutationData)
 
     // Add rated class to local storage
     setRatedLessons(previouslyRatedClasses => [
