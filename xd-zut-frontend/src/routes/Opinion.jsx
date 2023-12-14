@@ -189,10 +189,16 @@ function Opinion() {
               variant='outline'
               onClick={() => setRate(0)}
               miw='10rem'
+              disabled={addOpinionMutation.isLoading}
             >
               Zmień ocenę
             </Button>
-            <Button size='md' onClick={handleSubmit} miw='10rem'>
+            <Button
+              size='md'
+              onClick={handleSubmit}
+              miw='10rem'
+              loading={addOpinionMutation.isLoading}
+            >
               Wyślij
             </Button>
           </Flex>
