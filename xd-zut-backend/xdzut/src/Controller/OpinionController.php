@@ -21,6 +21,9 @@ use App\Model\AddOpinionDTO;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mailer\MailerInterface;
+
 
 class OpinionController extends AbstractController
 {
@@ -130,33 +133,61 @@ class OpinionController extends AbstractController
     }
 
   #[Route('/excel/generate', name: 'app_excel_create', methods: ['GET'])]
-  public function generateExcel(): Response
+  public function generateExcel(MailerInterface $mailer): Response
   {
-      $spreadsheet = new Spreadsheet();
-      $sheet = $spreadsheet->getActiveSheet();
+      // $spreadsheet = new Spreadsheet();
+      // $sheet = $spreadsheet->getActiveSheet();
 
-      $data = [
-          ['Header1', 'Header2', 'Header3'],
-          [1, 2, 3],
-          [4, 5, 6],
+      // $data = [
+          // ['Header1', 'Header2', 'Header3'],
+          // [1, 2, 3],
+          // [4, 5, 6],
           // ...
-      ];
+      // ];
+
+      // $mailer->SMTPDebug = SMTP::DEBUG_SERVER;
+
+
+      // Send email to uf49430@zut.edu.pl
+      $email = (new Email())
+          ->from('xdzut@interia.pl')
+          ->to('xdzut@interia.pl')
+          ->subject('Test')
+          ->text('Sending emails is fun again!')
+          ->html('<p>See Twig integration for better HTML integration!</p>');
+
+      try{
+        $mailer->send($email);
+        // Catch any errors including failed validations
+        echo 'Email sent!';
+      } catch (TransportExceptionInterface $e) {
+        echo $e->getMessage();
+      }
+
+      // Check if mail has been sent
+      
 
       // Adding data to spreadsheet
-      $sheet->fromArray($data, null, 'A1');
+      // $sheet->fromArray($data, null, 'A1');
 
       // Create writer and save to file
-      $writer = new Xlsx($spreadsheet);
+      // $writer = new Xlsx($spreadsheet);
 
       // Create http response
-      $response = new StreamedResponse(function() use ($writer) {
-          $writer->save('php://output');
-      });
+      // $response = new StreamedResponse(function() use ($writer) {
+      //     $writer->save('php://output');
+      // });
 
-      // Setting up correct headers
-      $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      $response->headers->set('Content-Disposition', 'attachment;filename="export.xlsx"');
-      $response->headers->set('Cache-Control','max-age=0');
-      return $response;
+      // // Setting up correct headers
+      // $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      // $response->headers->set('Content-Disposition', 'attachment;filename="export.xlsx"');
+      // $response->headers->set('Cache-Control','max-age=0');
+      // return $response;
+
+      // return json
+      return $this->json([
+        'message' => 'Welcome to your new controller!',
+        'path' => 'src/Controller/OpinionController.php',
+      ]);
   }
 }
