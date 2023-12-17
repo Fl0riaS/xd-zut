@@ -14,26 +14,26 @@ class Raport
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    public ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $date = null;
+    public ?\DateTimeInterface $date = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $totalScore = null;
+    public ?int $totalScore = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $monthScore = null;
+    public ?int $monthScore = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $generateIn = null;
+    public ?\DateTimeInterface $generateIn = null;
 
     #[ORM\ManyToOne(inversedBy: 'raports')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Course $course = null;
+    public ?Course $course = null;
 
     #[ORM\OneToMany(mappedBy: 'raport', targetEntity: Opinion::class, orphanRemoval: true)]
-    private Collection $opinions;
+    public Collection $opinions;
 
     public function __construct()
     {

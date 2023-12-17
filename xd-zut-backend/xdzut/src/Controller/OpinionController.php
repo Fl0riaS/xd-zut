@@ -24,14 +24,14 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class OpinionController extends AbstractController
 {
-  #[Route('/opinion', name: 'app_opinion')]
-  public function index(): JsonResponse
-  {
-    return $this->json([
-      'message' => 'Welcome to your new controller!',
-      'path' => 'src/Controller/OpinionController.php',
-    ]);
-  }
+    #[Route('/opinion', name: 'app_opinion')]
+    public function index(): JsonResponse
+    {
+        return $this->json([
+            'message' => 'Welcome to your new controller!',
+            'path' => 'src/Controller/OpinionController.php',
+        ]);
+    }
 
     // Add opinion
     // score
@@ -49,8 +49,7 @@ class OpinionController extends AbstractController
         CourseRepository                   $courseRepository,
         SubjectRepository                  $subjectRepository,
         OpinionRepository                  $opinionRepository
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $teacherName = $opinionDTO->workerTitle;
         $teacher = $teacherRepository->findOneBy(['name' => $teacherName]);
         if (!$teacher) {
@@ -129,34 +128,14 @@ class OpinionController extends AbstractController
         return $response;
     }
 
-  #[Route('/excel/generate', name: 'app_excel_create', methods: ['GET'])]
-  public function generateExcel(): Response
-  {
-      $spreadsheet = new Spreadsheet();
-      $sheet = $spreadsheet->getActiveSheet();
+    #[Route('/raports', name: 'app_reports_get_all', methods: ['GET'])]
+    public function getRaports(RaportRepository                   $raportRepository,): Response
+    {
+        $raports = $raportRepository->findAll();
 
-      $data = [
-          ['Header1', 'Header2', 'Header3'],
-          [1, 2, 3],
-          [4, 5, 6],
-          // ...
-      ];
-
-      // Adding data to spreadsheet
-      $sheet->fromArray($data, null, 'A1');
-
-      // Create writer and save to file
-      $writer = new Xlsx($spreadsheet);
-
-      // Create http response
-      $response = new StreamedResponse(function() use ($writer) {
-          $writer->save('php://output');
-      });
-
-      // Setting up correct headers
-      $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      $response->headers->set('Content-Disposition', 'attachment;filename="export.xlsx"');
-      $response->headers->set('Cache-Control','max-age=0');
-      return $response;
-  }
+        $response = new JsonResponse();
+        $response->setStatusCode(Response::HTTP_OK);
+        $response->setContent(json_encode($raports));
+        return $response;
+    }
 }
