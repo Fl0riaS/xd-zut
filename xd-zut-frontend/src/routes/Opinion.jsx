@@ -31,7 +31,7 @@ function Opinion() {
   const { isLoading, data } = useQuery({
     queryKey: ['course', roomNumber],
     queryFn: async () => {
-      const startDate = dayjs().format()
+      const startDate = dayjs().subtract(3, 'd').format()
       const endDate = dayjs().add(1, 'd').format()
 
       const response = await fetch(
@@ -41,12 +41,14 @@ function Opinion() {
       )
       const { contents } = await response.json()
       const lessons = await JSON.parse(contents)
+      console.log(lessons)
       // For some reason ZUT decided to return empty array on first index XDDDD
       lessons.shift()
 
-      const result = lessons.find(
-        lesson => dayjs().add(30, 'm') < dayjs(lesson.end)
-      )
+      const result = lessons[0]
+      // const result = lessons.find(
+      //   lesson => dayjs().add(30, 'm') < dayjs(lesson.end)
+      // )
 
       return result
     },
