@@ -21,6 +21,14 @@ class TeacherRepository extends ServiceEntityRepository
         parent::__construct($registry, Teacher::class);
     }
 
+    public function save(Teacher $teacher, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($teacher);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
 //    /**
 //     * @return Teacher[] Returns an array of Teacher objects
 //     */

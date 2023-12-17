@@ -21,7 +21,7 @@ class Teacher
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $email = null;
 
-    #[ORM\ManyToMany(targetEntity: Course::class, mappedBy: 'teacher')]
+    #[ORM\OneToMany(mappedBy: 'teacher', targetEntity: Course::class, orphanRemoval: true)]
     private Collection $courses;
 
     public function __construct()

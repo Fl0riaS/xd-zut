@@ -20,6 +20,13 @@ class OpinionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Opinion::class);
     }
+    public function save(Opinion $opinion, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($opinion);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
 
 //    /**
 //     * @return Opinion[] Returns an array of Opinion objects

@@ -21,6 +21,14 @@ class RaportRepository extends ServiceEntityRepository
         parent::__construct($registry, Raport::class);
     }
 
+    public function save(Raport $raport, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($raport);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
 //    /**
 //     * @return Raport[] Returns an array of Raport objects
 //     */

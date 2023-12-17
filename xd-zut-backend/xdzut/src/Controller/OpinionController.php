@@ -2,11 +2,21 @@
 
 namespace App\Controller;
 
+use App\Entity\Course;
+use App\Entity\Opinion;
+use App\Entity\Raport;
+use App\Entity\Teacher;
+use App\Entity\Subject;
+use App\Repository\CourseRepository;
+use App\Repository\RaportRepository;
+use App\Repository\SubjectRepository;
+use App\Repository\TeacherRepository;
+use App\Repository\OpinionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Annotation\MapRequestPayload;
 use App\Model\AddOpinionDTO;
 
 class OpinionController extends AbstractController
@@ -21,7 +31,6 @@ class OpinionController extends AbstractController
     }
 
     // Add opinion
-    // Backend get
     // score
     // startDate
     // endDate
@@ -31,20 +40,89 @@ class OpinionController extends AbstractController
     // comment
     #[Route('/opinion/add', name: 'app_opinion_add', methods: ['POST'])]
     public function addOpinion(
-      // Request $request,
-      // SerializerInterface $serializer,
-      #[MapRequestPayload] AddOpinionDTO $opinionDTO
-      ): JsonResponse
+        #[MapRequestPayload] AddOpinionDTO $opinionDTO,
+        RaportRepository                   $raportRepository,
+        TeacherRepository                  $teacherRepository,
+        CourseRepository                   $courseRepository,
+        SubjectRepository                  $subjectRepository,
+        OpinionRepository                  $opinionRepository
+    ): JsonResponse
     {
+        $teacherName = $opinionDTO->workerTitle;
+        $teacher = $teacherRepository->findOneBy(['name' => $teacherName]);
+        if (!$teacher) {
+            $teacher = new Teacher();
+            $teacher->setName($teacherName);
+            $teacherRepository->save($teacher);
+        }
 
-        die(json_encode($opinionDTO));
-        // get data from request
-        // $data = json_decode($request->getContent(), true);
+        $subjectTitle = $opinionDTO->title;
+        $subject = $subjectRepository->findOneBy(['title' => $subjectTitle]);
+        if (!$subject) {
+            $subject = new Subject();
+            $subject->setTitle($subjectTitle);
+            $subjectRepository->save($subject);
+        }
 
-        // return data as json
-        // return $this->json([
-          // "data" => $data
-        // ]);
-        
+        $course = new Course();
+        if (!$subject->getId() || !$teacher->getId()) {
+            $course->setSubject($subject);
+            $course->setTeacher($teacher);
+            $course->setGroupName($opinionDTO->groupName);
+            $courseRepository->save($course, true);
+        } else {
+            $course = $courseRepository->findOneBy(
+                ['groupName' => $opinionDTO->groupName, 'subject' => $subject->getId(), 'teacher' => $teacher->getId()]
+            );
+        }
+
+        $raport = $raportRepository->findOneBy(
+            ['course' => $course->getId(), 'date' => $opinionDTO->endDate]
+        );
+
+        if (!$raport) {
+            $raport = new Raport();
+            $raport->setCourse($course);
+            $raport->setDate($opinionDTO->endDate);
+            $raport->setGenerateIn($opinionDTO->endDate->add(new \DateInterval('PT30M')));
+
+            $previousRaport = $raportRepository->findOneBy(
+                ['course' => $course->getId()],
+                ['date' => 'DESC']
+            );
+            if ($previousRaport) {
+                $raport->setTotalScore($previousRaport->getTotalScore());
+                if ($previousRaport->getDate()->format('m') == $opinionDTO->endDate->format('m')) {
+                    $raport->setMonthScore($previousRaport->getMonthScore());
+                } else {
+                    $raport->setMonthScore(0);
+                }
+            } else {
+                $raport->setTotalScore(0);
+                $raport->setMonthScore(0);
+            }
+        }
+
+        $response = new JsonResponse();
+        if ($raport->getGenerateIn() < new \DateTime()) {
+            $response->setStatusCode(Response::HTTP_BAD_REQUEST);
+            $response->setContent('Can not add opinion to the raport. Raport is already generated.');
+            return $response;
+        }
+
+        $raport->setTotalScore($raport->getTotalScore() + $opinionDTO->score);
+        $raport->setMonthScore($raport->getMonthScore() + $opinionDTO->score);
+        $raportRepository->save($raport);
+
+        $opinion = new Opinion();
+        $opinion->setRaport($raport);
+        $opinion->setScore($opinionDTO->score);
+        $opinion->setComment($opinionDTO->comment);
+
+        $opinionRepository->save($opinion, true);
+
+        $response->setStatusCode(Response::HTTP_OK);
+
+        return $response;
     }
 }
