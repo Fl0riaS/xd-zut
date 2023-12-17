@@ -53,7 +53,23 @@ const ReportListPage = () => {
         return false
       }
 
-      // TODO: filter by teacher and subject
+      if (
+        subjectName &&
+        !report.course.subject.title
+          .toLowerCase()
+          .includes(subjectName.toLowerCase())
+      ) {
+        return false
+      }
+
+      if (
+        teacherName &&
+        !report.course.teacher.name
+          .toLowerCase()
+          .includes(teacherName.toLowerCase())
+      ) {
+        return false
+      }
 
       return true
     })
@@ -103,14 +119,14 @@ const ReportListPage = () => {
         <TextInput
           label='Prowadzący'
           value={teacherName}
-          onChange={setTeacherName}
+          onChange={e => setTeacherName(e.target.value)}
           miw={400}
           placeholder='Wpisz imię i/lub nazwisko prowadzącego'
         />
         <TextInput
           label='Przedmiot'
           value={subjectName}
-          onChange={setSubjectName}
+          onChange={e => setSubjectName(e.target.value)}
           miw={400}
           placeholder='Wpisz nazwę przedmiotu'
         />
@@ -132,7 +148,7 @@ const ReportListPage = () => {
                   <Title order={4}>
                     Prowadzący:
                     <Text span c='blue' inherit>
-                      {report.teacher}
+                      {` ${report.course.teacher.name}`}
                     </Text>
                   </Title>
                   <Title order={4}>
@@ -144,7 +160,7 @@ const ReportListPage = () => {
                   <Title order={4}>
                     Przedmiot:
                     <Text span c='blue' inherit>
-                      {report.subject}
+                      {` ${report.course.subject.title}`}
                     </Text>
                   </Title>
                 </Box>
