@@ -59,7 +59,8 @@ class Admin implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return ['ROLE_ADMIN'];
+      // Print roles
+        return ['ROLE_USER'];
     }
 
     public function eraseCredentials()

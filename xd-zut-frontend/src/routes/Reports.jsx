@@ -29,11 +29,11 @@ const ReportListPage = () => {
 
   const handleDownload = id => {
     fetch(`http://localhost:3000/raport/${id}/generate`)
-    .then( res => res.blob() )
-    .then( blob => {
-      var file = window.URL.createObjectURL(blob);
-      window.location.assign(file);
-    });
+      .then(res => res.blob())
+      .then(blob => {
+        var file = window.URL.createObjectURL(blob)
+        window.location.assign(file)
+      })
   }
 
   const { isLoading, data } = useQuery({
