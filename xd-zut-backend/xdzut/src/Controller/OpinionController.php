@@ -12,13 +12,13 @@ use App\Repository\RaportRepository;
 use App\Repository\SubjectRepository;
 use App\Repository\TeacherRepository;
 use App\Repository\OpinionRepository;
+use App\Services\RaportService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Model\AddOpinionDTO;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
@@ -26,7 +26,6 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Mailer\MailerInterface;
 
 
@@ -153,57 +152,15 @@ class OpinionController extends AbstractController
 
     // Generate excel from raport
     #[Route('/raport/{id}/generate', name: 'app_raport_generate', methods: ['GET'])]
-    public function generateRaport(Raport $raport): StreamedResponse
+    public function generateRaport(Raport $raport, RaportService $raportService): StreamedResponse
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        $spreadsheet = $raportService->generateSheet($raport);
 
-        // Ustawianie danych raportu
-        $sheet->setCellValue('A1', 'Raport');
-        $sheet->setCellValue('A2', 'Data');
-        $sheet->setCellValue('B2', $raport->getDate()->format('Y-m-d'));
-        $sheet->setCellValue('A3', 'Prowadzący');
-        $sheet->setCellValue('B3', $raport->getCourse()->getTeacher()->getName());
-        $sheet->setCellValue('A4', 'Przedmiot');
-        $sheet->setCellValue('B4', $raport->getCourse()->getSubject()->getTitle());
-        $sheet->setCellValue('A5', 'Grupa');
-        $sheet->setCellValue('B5', $raport->getCourse()->getGroupName());
-        $sheet->setCellValue('A6', 'Ocena miesiąca');
-        $sheet->setCellValue('B6', $raport->getTotalScore());
-
-        // Ocena z ostatnich zajec to suma wszystkich ocen z tego raportu
-        $last_lecture_score = 0;
-
-        foreach ($raport->getOpinions() as $opinion) {
-            $last_lecture_score += $opinion->getScore();
-        }
-
-        $sheet->setCellValue('A7', 'Ocena całkowita');
-        $sheet->setCellValue('B7', $raport->getMonthScore());
-        $sheet->setCellValue('A8', 'Ocena z ostatnich zajęć');
-        $sheet->setCellValue('B8', $last_lecture_score);
-
-        // Ustawianie opinii
-        $sheet->setCellValue('A10', 'Opinie');
-        // $sheet->setCellValue('A9', 'Data');
-        $sheet->setCellValue('B11', 'Ocena');
-        $sheet->setCellValue('C11', 'Komentarz');
-
-        $row = 12;
-        foreach ($raport->getOpinions() as $opinion) {
-            // $sheet->setCellValue('A' . $row, $opinion->getDate()->format('Y-m-d'));
-            $sheet->setCellValue('B' . $row, $opinion->getScore());
-            $sheet->setCellValue('C' . $row, $opinion->getComment());
-            $row++;
-        }
-
-        // Utwórz odpowiedź strumieniową
         $response = new StreamedResponse(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
             $writer->save('php://output');
         });
 
-        // Ustaw nagłówki odpowiedzi
         $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         $response->headers->set('Content-Disposition', 'attachment;filename="raport.xlsx"');
         $response->headers->set('Cache-Control', 'max-age=0');
@@ -213,74 +170,10 @@ class OpinionController extends AbstractController
 
     // Endpoint for resend email with raport
     #[Route('/raport/{id}/resend', name: 'app_raport_resend', methods: ['POST'])]
-    public function resendRaport(Raport $raport, MailerInterface $mailer): JsonResponse
+    public function resendRaport(Raport $raport, MailerInterface $mailer, RaportService $raportService): JsonResponse
     {
 
-        // generate raport
-
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // Ustawianie danych raportu
-        $sheet->setCellValue('A1', 'Raport');
-        $sheet->setCellValue('A2', 'Data');
-        $sheet->setCellValue('B2', $raport->getDate()->format('Y-m-d'));
-        $sheet->setCellValue('A3', 'Prowadzący');
-        $sheet->setCellValue('B3', $raport->getCourse()->getTeacher()->getName());
-        $sheet->setCellValue('A4', 'Przedmiot');
-        $sheet->setCellValue('B4', $raport->getCourse()->getSubject()->getTitle());
-        $sheet->setCellValue('A5', 'Grupa');
-        $sheet->setCellValue('B5', $raport->getCourse()->getGroupName());
-        $sheet->setCellValue('A6', 'Ocena miesiąca');
-        $sheet->setCellValue('B6', $raport->getTotalScore());
-
-        // Ocena z ostatnich zajec to suma wszystkich ocen z tego raportu
-        $last_lecture_score = 0;
-
-        foreach ($raport->getOpinions() as $opinion) {
-            $last_lecture_score += $opinion->getScore();
-        }
-
-        $sheet->setCellValue('A7', 'Ocena całkowita');
-        $sheet->setCellValue('B7', $raport->getMonthScore());
-        $sheet->setCellValue('A8', 'Ocena z ostatnich zajęć');
-        $sheet->setCellValue('B8', $last_lecture_score);
-
-        // Ustawianie opinii
-        $sheet->setCellValue('A10', 'Opinie');
-        // $sheet->setCellValue('A9', 'Data');
-        $sheet->setCellValue('B11', 'Ocena');
-        $sheet->setCellValue('C11', 'Komentarz');
-
-        $row = 12;
-        foreach ($raport->getOpinions() as $opinion) {
-            // $sheet->setCellValue('A' . $row, $opinion->getDate()->format('Y-m-d'));
-            $sheet->setCellValue('B' . $row, $opinion->getScore());
-            $sheet->setCellValue('C' . $row, $opinion->getComment());
-            $row++;
-        }
-
-        // add raport to email
-        $writer = new Xlsx($spreadsheet);
-        $writer->save('raport.xlsx');
-
-        // send email
-
-        $teacher_email = $raport->getCourse()->getTeacher()->getEmail();
-
-        $email = (new Email())
-            ->from('xdzut@interia.pl')
-            ->to($teacher_email)
-            ->subject('Raport')
-            ->text('Raport')
-            ->attachFromPath('raport.xlsx');
-
-
-        $mailer->send($email);
-
-        // delete raport
-        unlink('raport.xlsx');
-
+        $raportService->sendRaport($raport, $mailer);
         $response = new JsonResponse();
         $response->setStatusCode(Response::HTTP_OK);
 
