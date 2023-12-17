@@ -114,11 +114,11 @@ class OpinionController extends AbstractController
         }
 
         $response = new JsonResponse();
-        // if ($raport->getGenerateIn() < new \DateTime()) {
-        //     $response->setStatusCode(Response::HTTP_BAD_REQUEST);
-        //     $response->setContent('Can not add opinion to the raport. Raport is already generated.');
-        //     return $response;
-        // }
+        if ($raport->getGenerateIn() < new \DateTime()) {
+            $response->setStatusCode(Response::HTTP_BAD_REQUEST);
+            $response->setContent('Can not add opinion to the raport. Raport is already generated.');
+            return $response;
+        }
 
         $raport->setTotalScore($raport->getTotalScore() + $opinionDTO->score);
         $raport->setMonthScore($raport->getMonthScore() + $opinionDTO->score);

@@ -44,10 +44,10 @@ function Opinion() {
       // For some reason ZUT decided to return empty array on first index XDDDD
       lessons.shift()
 
-      const result = lessons[0]
-      // const result = lessons.find(
-      // lesson => dayjs().add(30, 'm') < dayjs(lesson.end)
-      // )
+      // const result = lessons[0]
+      const result = lessons.find(
+        lesson => dayjs().add(30, 'm') < dayjs(lesson.end)
+      )
 
       return result
     },
