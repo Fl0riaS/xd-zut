@@ -13,14 +13,11 @@ import {
 } from '@mantine/core'
 import dayjs from 'dayjs'
 import { IconDownload, IconSend } from '@tabler/icons-react'
-import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { DatePickerInput } from '@mantine/dates'
 
 const ReportListPage = () => {
-  const navigate = useNavigate()
-
   const [activePage, setActivePage] = useState(1)
   const [chosenDate, setChosenDate] = useState([])
   const [teacherName, setTeacherName] = useState()
@@ -30,8 +27,13 @@ const ReportListPage = () => {
     window.alert('resend')
   }
 
-  const handleOpenReport = ({ id }) => {
-    navigate(`/report/${id}`)
+  const handleDownload = id => {
+    fetch(`http://localhost:3000/raport/${id}/generate`)
+    .then( res => res.blob() )
+    .then( blob => {
+      var file = window.URL.createObjectURL(blob);
+      window.location.assign(file);
+    });
   }
 
   const { isLoading, data } = useQuery({
@@ -170,7 +172,7 @@ const ReportListPage = () => {
                   </ActionIcon>
                   <ActionIcon
                     size='xl'
-                    onClick={() => handleOpenReport({ id: report.reportId })}
+                    onClick={() => handleDownload(report.id)}
                   >
                     <IconDownload />
                   </ActionIcon>
