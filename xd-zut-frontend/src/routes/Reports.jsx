@@ -24,12 +24,28 @@ const ReportListPage = () => {
   const [subjectName, setSubjectName] = useState('')
 
   const handleResend = async id => {
-    await fetch(`http://localhost:3000/raport/${id}/resend`)
+    await fetch(
+      `http://localhost:3000/raport/${id}/resend`,
+
+      // Add headers
+      {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + document.cookie.split('=')[1],
+        },
+        credentials: 'include',
+      }
+    )
     alert('Raport został wysłany ponownie')
   }
 
   const handleDownload = id => {
-    fetch(`http://localhost:3000/raport/${id}/generate`)
+    fetch(`http://localhost:3000/raport/${id}/generate`, {
+      headers: {
+        Authorization: 'Bearer ' + document.cookie.split('=')[1],
+      },
+      credentials: 'include',
+    })
       .then(res => res.blob())
       .then(blob => {
         var file = window.URL.createObjectURL(blob)
@@ -40,7 +56,12 @@ const ReportListPage = () => {
   const { isLoading, data } = useQuery({
     queryKey: ['raports'],
     queryFn: async () => {
-      const response = await fetch('http://localhost:3000/raports')
+      const response = await fetch('http://localhost:3000/raports', {
+        headers: {
+          Authorization: 'Bearer ' + document.cookie.split('=')[1],
+        },
+        credentials: 'include',
+      })
       return await response.json()
     },
   })
