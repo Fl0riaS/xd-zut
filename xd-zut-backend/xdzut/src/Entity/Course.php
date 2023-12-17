@@ -27,7 +27,7 @@ class Course
 
     #[ORM\ManyToOne(inversedBy: 'courses')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?teacher $teacher = null;
+    private ?Teacher $teacher = null;
 
     public function __construct()
     {
@@ -105,7 +105,7 @@ class Course
         return $this;
     }
 
-    public function setTeacher(?teacher $teacher): static
+    public function setTeacher(?Teacher $teacher): static
     {
         $this->teacher = $teacher;
 

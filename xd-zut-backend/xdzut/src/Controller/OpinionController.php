@@ -20,6 +20,10 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Model\AddOpinionDTO;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mailer\MailerInterface;
@@ -27,14 +31,14 @@ use Symfony\Component\Mailer\MailerInterface;
 
 class OpinionController extends AbstractController
 {
-  #[Route('/opinion', name: 'app_opinion')]
-  public function index(): JsonResponse
-  {
-    return $this->json([
-      'message' => 'Welcome to your new controller!',
-      'path' => 'src/Controller/OpinionController.php',
-    ]);
-  }
+    #[Route('/opinion', name: 'app_opinion')]
+    public function index(): JsonResponse
+    {
+        return $this->json([
+            'message' => 'Welcome to your new controller!',
+            'path' => 'src/Controller/OpinionController.php',
+        ]);
+    }
 
     // Add opinion
     // score
@@ -52,8 +56,7 @@ class OpinionController extends AbstractController
         CourseRepository                   $courseRepository,
         SubjectRepository                  $subjectRepository,
         OpinionRepository                  $opinionRepository
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $teacherName = $opinionDTO->workerTitle;
         $teacher = $teacherRepository->findOneBy(['name' => $teacherName]);
         if (!$teacher) {
@@ -110,11 +113,11 @@ class OpinionController extends AbstractController
         }
 
         $response = new JsonResponse();
-        if ($raport->getGenerateIn() < new \DateTime()) {
-            $response->setStatusCode(Response::HTTP_BAD_REQUEST);
-            $response->setContent('Can not add opinion to the raport. Raport is already generated.');
-            return $response;
-        }
+        // if ($raport->getGenerateIn() < new \DateTime()) {
+        //     $response->setStatusCode(Response::HTTP_BAD_REQUEST);
+        //     $response->setContent('Can not add opinion to the raport. Raport is already generated.');
+        //     return $response;
+        // }
 
         $raport->setTotalScore($raport->getTotalScore() + $opinionDTO->score);
         $raport->setMonthScore($raport->getMonthScore() + $opinionDTO->score);
@@ -132,62 +135,19 @@ class OpinionController extends AbstractController
         return $response;
     }
 
-  #[Route('/excel/generate', name: 'app_excel_create', methods: ['GET'])]
-  public function generateExcel(MailerInterface $mailer): Response
-  {
-      // $spreadsheet = new Spreadsheet();
-      // $sheet = $spreadsheet->getActiveSheet();
+    #[Route('/raports', name: 'app_reports_get_all', methods: ['GET'])]
+public function getRaports(RaportRepository $raportRepository): JsonResponse
+{
+    $raports = $raportRepository->findAll();
 
-      // $data = [
-          // ['Header1', 'Header2', 'Header3'],
-          // [1, 2, 3],
-          // [4, 5, 6],
-          // ...
-      // ];
+    // Return raports as json, use serialization, but be careful with circular references
+    $serializer = new Serializer([new ObjectNormalizer()], [new JsonEncoder()]);
+    $json = $serializer->serialize($raports, 'json', [AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
+        return $object->getId();
+    }]);
 
-      // $mailer->SMTPDebug = SMTP::DEBUG_SERVER;
+    // return json response
+    return new JsonResponse($json, Response::HTTP_OK, [], true); // true indicates $json is already a JSON string
+}
 
-
-      // Send email to uf49430@zut.edu.pl
-      $email = (new Email())
-          ->from('xdzut@interia.pl')
-          ->to('xdzut@interia.pl')
-          ->subject('Test')
-          ->text('Sending emails is fun again!')
-          ->html('<p>See Twig integration for better HTML integration!</p>');
-
-      try{
-        $mailer->send($email);
-        // Catch any errors including failed validations
-        echo 'Email sent!';
-      } catch (TransportExceptionInterface $e) {
-        echo $e->getMessage();
-      }
-
-      // Check if mail has been sent
-      
-
-      // Adding data to spreadsheet
-      // $sheet->fromArray($data, null, 'A1');
-
-      // Create writer and save to file
-      // $writer = new Xlsx($spreadsheet);
-
-      // Create http response
-      // $response = new StreamedResponse(function() use ($writer) {
-      //     $writer->save('php://output');
-      // });
-
-      // // Setting up correct headers
-      // $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      // $response->headers->set('Content-Disposition', 'attachment;filename="export.xlsx"');
-      // $response->headers->set('Cache-Control','max-age=0');
-      // return $response;
-
-      // return json
-      return $this->json([
-        'message' => 'Welcome to your new controller!',
-        'path' => 'src/Controller/OpinionController.php',
-      ]);
-  }
 }
