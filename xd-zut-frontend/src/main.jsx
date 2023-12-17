@@ -8,7 +8,7 @@ import './main.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Login from './routes/Login.jsx'
 import ReportPage from './pages/ReportPage.jsx'
-import ReportListPage from './pages/ReportListPage.jsx'
+import ReportListPage from './routes/Reports.jsx'
 
 const queryClient = new QueryClient()
 
