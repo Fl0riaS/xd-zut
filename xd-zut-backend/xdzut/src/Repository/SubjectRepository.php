@@ -21,6 +21,14 @@ class SubjectRepository extends ServiceEntityRepository
         parent::__construct($registry, Subject::class);
     }
 
+    public function save(Subject $subject, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($subject);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
 //    /**
 //     * @return Subject[] Returns an array of Subject objects
 //     */

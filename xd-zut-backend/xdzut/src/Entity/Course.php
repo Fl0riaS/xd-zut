@@ -18,9 +18,6 @@ class Course
     #[ORM\Column(length: 255)]
     private ?string $groupName = null;
 
-    #[ORM\ManyToMany(targetEntity: Teacher::class, inversedBy: 'courses')]
-    private Collection $teacher;
-
     #[ORM\ManyToOne(inversedBy: 'courses')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Subject $subject = null;
@@ -28,9 +25,12 @@ class Course
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Raport::class, orphanRemoval: true)]
     private Collection $raports;
 
+    #[ORM\ManyToOne(inversedBy: 'courses')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?teacher $teacher = null;
+
     public function __construct()
     {
-        $this->teacher = new ArrayCollection();
         $this->raports = new ArrayCollection();
     }
 
@@ -51,21 +51,9 @@ class Course
         return $this;
     }
 
-    /**
-     * @return Collection<int, Teacher>
-     */
-    public function getTeacher(): Collection
+    public function getTeacher(): ?Teacher
     {
         return $this->teacher;
-    }
-
-    public function addTeacher(Teacher $teacher): static
-    {
-        if (!$this->teacher->contains($teacher)) {
-            $this->teacher->add($teacher);
-        }
-
-        return $this;
     }
 
     public function removeTeacher(Teacher $teacher): static
@@ -113,6 +101,13 @@ class Course
                 $raport->setCourse(null);
             }
         }
+
+        return $this;
+    }
+
+    public function setTeacher(?teacher $teacher): static
+    {
+        $this->teacher = $teacher;
 
         return $this;
     }

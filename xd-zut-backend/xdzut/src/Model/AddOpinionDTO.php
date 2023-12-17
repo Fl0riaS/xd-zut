@@ -4,31 +4,14 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use Symfony\Component\Validator\Constraints\DateTime;
+
 class AddOpinionDTO
 {
     public ?int $score;
-    public ?string $startDate;
-    public ?string $endDate;
+    public ?\DateTimeInterface $endDate;
     public ?string $workerTitle;
-    public ?string $lessonFormShort;
+    public ?string $title;
     public ?string $groupName;
-    public ?string $comment;
-
-    // public function __construct(
-    //     ?int $score,
-    //     ?string $startDate,
-    //     ?string $endDate,
-    //     ?string $workerTitle,
-    //     ?string $lessonFormShort,
-    //     ?string $groupName,
-    //     ?string $comment,
-    // ) {
-    //     $this->score = $score;
-    //     $this->startDate = $startDate;
-    //     $this->endDate = $endDate;
-    //     $this->workerTitle = $workerTitle;
-    //     $this->lessonFormShort = $lessonFormShort;
-    //     $this->groupName = $groupName;
-    //     $this->comment = $comment;
-    // }
+    public ?string $comment = null;
 }
