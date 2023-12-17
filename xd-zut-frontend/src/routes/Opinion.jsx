@@ -9,16 +9,25 @@ import {
   Title,
 } from '@mantine/core'
 import { IconMoodHappy, IconMoodSad } from '@tabler/icons-react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useLocalStorage } from '@mantine/hooks'
 
 function Opinion() {
+  // #region HOOKS
   const { roomNumber } = useParams()
+  const [ratedLessons, setRatedLessons] = useLocalStorage({
+    key: 'rated-lessons',
+    defaultValue: [],
+  })
+
   const [rate, setRate] = useState(0)
   const [rateDescription, setRateDescription] = useState('')
+  // #endregion
 
+  // #region MUTATIONS
   const { isLoading, data } = useQuery({
     queryKey: ['course', roomNumber],
     queryFn: async () => {
@@ -43,20 +52,46 @@ function Opinion() {
     },
   })
 
-  const handleSubmit = () => {
+  const addOpinionMutation = useMutation({
+    mutationFn: async data => {
+      const response = await fetch('http://localhost:3000/opinion/add', {
+        method: 'POST',
+        cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        mode: 'cors', // no-cors, *cors, same-origin
+      })
+      return response.json()
+    },
+  })
+  // #endregion
+
+  // #region HANDLERS
+  const handleSubmit = async () => {
     const mutationData = {
       score: rate,
       startDate: data.start,
       endDate: data.end,
       workerTitle: data.worker_title,
-      lessonFormShort: data.lesson_form_short,
+      title: data.title,
       groupName: data.group_name,
-      comment: rateDescription
+      comment: rateDescription,
     }
 
-    // TODO: send to backend
-  }
+    // send to backend
+    await addOpinionMutation.mutateAsync(mutationData)
 
+    // Add rated class to local storage
+    setRatedLessons(previouslyRatedClasses => [
+      ...previouslyRatedClasses,
+      { roomNumber, startDate: data.start },
+    ])
+  }
+  // #endregion
+
+  // #region JSX
   if (isLoading) {
     return (
       <Flex w='100%' h='100%' justify='center' align='center'>
@@ -71,6 +106,23 @@ function Opinion() {
         <IconMoodSad size='8rem' />
         <Title align='center' px='sm'>
           Nie znaleziono zajęć w tej sali
+        </Title>
+      </Stack>
+    )
+  }
+
+  // Check if current lesson is not already rated by user
+  if (
+    ratedLessons.find(
+      lesson =>
+        lesson.roomNumber === roomNumber && data.start === lesson.startDate
+    )
+  ) {
+    return (
+      <Stack w='100%' h='100%' justify='center' align='center'>
+        <IconMoodHappy size='8rem' />
+        <Title align='center' px='sm'>
+          Pomyślnie przesłano ocenę
         </Title>
       </Stack>
     )
@@ -137,10 +189,16 @@ function Opinion() {
               variant='outline'
               onClick={() => setRate(0)}
               miw='10rem'
+              disabled={addOpinionMutation.isLoading}
             >
               Zmień ocenę
             </Button>
-            <Button size='md' onClick={handleSubmit} miw='10rem'>
+            <Button
+              size='md'
+              onClick={handleSubmit}
+              miw='10rem'
+              loading={addOpinionMutation.isLoading}
+            >
               Wyślij
             </Button>
           </Flex>
@@ -148,6 +206,7 @@ function Opinion() {
       )}
     </Stack>
   )
+  // #endregion
 }
 
 export default Opinion
