@@ -24,6 +24,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Mailer\MailerInterface;
@@ -136,18 +137,77 @@ class OpinionController extends AbstractController
     }
 
     #[Route('/raports', name: 'app_reports_get_all', methods: ['GET'])]
-public function getRaports(RaportRepository $raportRepository): JsonResponse
-{
-    $raports = $raportRepository->findAll();
+    public function getRaports(RaportRepository $raportRepository): JsonResponse
+    {
+        $raports = $raportRepository->findAll();
 
-    // Return raports as json, use serialization, but be careful with circular references
-    $serializer = new Serializer([new ObjectNormalizer()], [new JsonEncoder()]);
-    $json = $serializer->serialize($raports, 'json', [AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
-        return $object->getId();
-    }]);
+        // Return raports as json, use serialization, but be careful with circular references
+        $serializer = new Serializer([new ObjectNormalizer()], [new JsonEncoder()]);
+        $json = $serializer->serialize($raports, 'json', [AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
+            return $object->getId();
+        }]);
 
-    // return json response
-    return new JsonResponse($json, Response::HTTP_OK, [], true); // true indicates $json is already a JSON string
-}
+        // return json response
+        return new JsonResponse($json, Response::HTTP_OK, [], true); // true indicates $json is already a JSON string
+    }
 
+    // Generate excel from raport
+    #[Route('/raport/{id}/generate', name: 'app_raport_generate', methods: ['GET'])]
+    public function generateRaport(Raport $raport): StreamedResponse
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Ustawianie danych raportu
+        $sheet->setCellValue('A1', 'Raport');
+        $sheet->setCellValue('A2', 'Data');
+        $sheet->setCellValue('B2', $raport->getDate()->format('Y-m-d'));
+        $sheet->setCellValue('A3', 'Prowadzący');
+        $sheet->setCellValue('B3', $raport->getCourse()->getTeacher()->getName());
+        $sheet->setCellValue('A4', 'Przedmiot');
+        $sheet->setCellValue('B4', $raport->getCourse()->getSubject()->getTitle());
+        $sheet->setCellValue('A5', 'Grupa');
+        $sheet->setCellValue('B5', $raport->getCourse()->getGroupName());
+        $sheet->setCellValue('A6', 'Ocena miesiąca');
+        $sheet->setCellValue('B6', $raport->getTotalScore());
+
+        // Ocena z ostatnich zajec to suma wszystkich ocen z tego raportu
+        $last_lecture_score = 0;
+
+        foreach ($raport->getOpinions() as $opinion) {
+            $last_lecture_score += $opinion->getScore();
+        }
+
+        $sheet->setCellValue('A7', 'Ocena całkowita');
+        $sheet->setCellValue('B7', $raport->getMonthScore());
+        $sheet->setCellValue('A8', 'Ocena z ostatnich zajęć');
+        $sheet->setCellValue('B8', $last_lecture_score);
+
+        // Ustawianie opinii
+        $sheet->setCellValue('A10', 'Opinie');
+        // $sheet->setCellValue('A9', 'Data');
+        $sheet->setCellValue('B11', 'Ocena');
+        $sheet->setCellValue('C11', 'Komentarz');
+
+        $row = 12;
+        foreach ($raport->getOpinions() as $opinion) {
+            // $sheet->setCellValue('A' . $row, $opinion->getDate()->format('Y-m-d'));
+            $sheet->setCellValue('B' . $row, $opinion->getScore());
+            $sheet->setCellValue('C' . $row, $opinion->getComment());
+            $row++;
+        }
+
+        // Utwórz odpowiedź strumieniową
+        $response = new StreamedResponse(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        });
+
+        // Ustaw nagłówki odpowiedzi
+        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $response->headers->set('Content-Disposition', 'attachment;filename="raport.xlsx"');
+        $response->headers->set('Cache-Control', 'max-age=0');
+
+        return $response;
+    }
 }
