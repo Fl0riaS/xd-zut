@@ -20,20 +20,21 @@ import { DatePickerInput } from '@mantine/dates'
 const ReportListPage = () => {
   const [activePage, setActivePage] = useState(1)
   const [chosenDate, setChosenDate] = useState([])
-  const [teacherName, setTeacherName] = useState()
-  const [subjectName, setSubjectName] = useState()
+  const [teacherName, setTeacherName] = useState('')
+  const [subjectName, setSubjectName] = useState('')
 
-  const handleResend = () => {
-    window.alert('resend')
+  const handleResend = async id => {
+    await fetch(`http://localhost:3000/raport/${id}/resend`)
+    alert('Raport został wysłany ponownie')
   }
 
   const handleDownload = id => {
     fetch(`http://localhost:3000/raport/${id}/generate`)
-    .then( res => res.blob() )
-    .then( blob => {
-      var file = window.URL.createObjectURL(blob);
-      window.location.assign(file);
-    });
+      .then(res => res.blob())
+      .then(blob => {
+        var file = window.URL.createObjectURL(blob)
+        window.location.assign(file)
+      })
   }
 
   const { isLoading, data } = useQuery({
@@ -167,7 +168,7 @@ const ReportListPage = () => {
                   </Title>
                 </Box>
                 <Flex>
-                  <ActionIcon size='xl' onClick={handleResend}>
+                  <ActionIcon size='xl' onClick={() => handleResend(report.id)}>
                     <IconSend />
                   </ActionIcon>
                   <ActionIcon
