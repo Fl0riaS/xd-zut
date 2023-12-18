@@ -29,6 +29,17 @@ class RaportRepository extends ServiceEntityRepository
         }
     }
 
+    // function to find raports that are not sent and which generateIn date is before current date
+public function findRaportsToSend(): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.isSent = false')
+            ->andWhere('r.generateIn <= :date')
+            ->setParameter('date', new \DateTime())
+            ->getQuery()
+            ->getResult();
+    }
+
 //    /**
 //     * @return Raport[] Returns an array of Raport objects
 //     */

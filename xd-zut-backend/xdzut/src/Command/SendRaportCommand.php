@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Repository\RaportRepository;
+use App\Services\RaportService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -23,7 +24,7 @@ use Symfony\Component\Mime\Part\File;
 )]
 class SendRaportCommand extends Command
 {
-    public function __construct(private MailerInterface $mailer, private RaportRepository $raportRepository)
+    public function __construct(private MailerInterface $mailer, private RaportRepository $raportRepository, private RaportService $raportService)
     {
         parent::__construct();
     }
@@ -38,18 +39,16 @@ class SendRaportCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-
-
-//        $email = (new Email())
-//        ->from('xdzut@interia.pl')
-//        ->to('xdzut@interia.pl')
-//        ->subject('Raport')
-//        ->html('<p>Raport ponizej:</p>');
-//        $email->addPart(new DataPart(new File(__DIR__.'\..\..\raport.txt')));
-//
-//        // $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
-//        $this->mailer->send($email);
-
+        $raports = $this->raportRepository->findRaportsToSend();
+        printf("Found %d raports to send\n", count($raports));
+        foreach($raports as $raport) {
+            if ($raport->getCourse()->getTeacher()->getEmail() === null) {
+                continue;
+            }
+            $this->raportService->sendRaport($raport, $this->mailer);
+            $raport->isSent = true;
+            $this->raportRepository->save($raport, true);
+        }
         return Command::SUCCESS;
     }
 }

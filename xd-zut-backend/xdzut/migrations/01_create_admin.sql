@@ -1,2 +1,2 @@
-INSERT INTO admin (login, password)
+INSERT INTO admin (username, password)
 VALUES ('admin', '$2y$13$hV19FKr2Q3CJBeoFUS13BO7DXX0jKLjHaX5mPQ5WxRam24tEJgwuq');
