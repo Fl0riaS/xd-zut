@@ -23,6 +23,10 @@ const Login = () => {
     // set cookies
 
     document.cookie = 'Bearer=' + (await response.json()).token
+
+    // Redirect to /reports
+
+    window.location.assign('/reports')
   }
 
   return (
