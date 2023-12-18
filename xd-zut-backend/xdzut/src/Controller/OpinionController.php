@@ -169,7 +169,7 @@ class OpinionController extends AbstractController
     }
 
     // Endpoint for resend email with raport
-    #[Route('/raport/{id}/resend', name: 'app_raport_resend', methods: ['GET'])]
+    #[Route('/raport/{id}/resend', name: 'app_raport_resend', methods: ['POST'])]
     public function resendRaport(Raport $raport, MailerInterface $mailer, RaportService $raportService): JsonResponse
     {
 
