@@ -35,6 +35,9 @@ class Raport
     #[ORM\OneToMany(mappedBy: 'raport', targetEntity: Opinion::class, orphanRemoval: true)]
     public Collection $opinions;
 
+    #[ORM\Column(type: Types::BOOLEAN)]
+    public bool $isSent = false;
+
     public function __construct()
     {
         $this->opinions = new ArrayCollection();

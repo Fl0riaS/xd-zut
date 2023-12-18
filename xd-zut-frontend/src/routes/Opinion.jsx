@@ -14,8 +14,11 @@ import dayjs from 'dayjs'
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useLocalStorage } from '@mantine/hooks'
+import utc from 'dayjs/plugin/utc'
 
 function Opinion() {
+  dayjs.extend(utc)
+
   // #region HOOKS
   const { roomNumber } = useParams()
   const [ratedLessons, setRatedLessons] = useLocalStorage({
@@ -73,8 +76,8 @@ function Opinion() {
   const handleSubmit = async () => {
     const mutationData = {
       score: rate,
-      startDate: data.start,
-      endDate: data.end,
+      startDate: dayjs(data.start).utc().format(),
+      endDate: dayjs(data.end).utc().format(),
       workerTitle: data.worker_title,
       title: data.title,
       groupName: data.group_name,
